@@ -1,2 +1,2 @@
-# Lite-HRDet
-An ultra-lightweight object detection network
+# Lite-HRNet
+An ultra-lightweight high-resolution network for object detection. 
