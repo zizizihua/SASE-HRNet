@@ -1,0 +1,29 @@
+# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+
+# Parameters
+nc: 80  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+anchors:
+  - [10,13, 16,30, 33,23]  # P3/8
+  - [30,61, 62,45, 59,119]  # P4/16
+  - [116,90, 156,198, 373,326]  # P5/32
+stride: [8, 16, 32]
+kernel_size: 5
+
+# Nano-HRNet backbone
+backbone:
+  # [from, number, module, args]
+  [[-1, 1, Conv, [32, 7, 4]],
+   [-1, 1, HRTransitionLayer, [[32, 64]]],
+   [-1, 1, SASEModule, [[32, 64], 2, 8, 'attn']],
+   [-1, 1, HRTransitionLayer, [[32, 64, 128]]],
+   [-1, 4, SASEModule, [[32, 64, 128], 2, 8, 'attn']],
+   [-1, 1, HRTransitionLayer, [[32, 64, 128, 256]]],
+   [-1, 3, SASEModule, [[32, 64, 128, 256], 2, 8, 'attn']],
+   [-1, 1, HROutputLayer, [[64, 64, 64], 2, [1, 2, 3], 'MSE', 8]]
+  ]
+
+# YOLOv5 v6.0 head
+head:
+  [[-1, 1, Detect, [nc, anchors, stride]]]
