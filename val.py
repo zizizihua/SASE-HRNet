@@ -212,11 +212,19 @@ def run(data,
         # Metrics
         for si, pred in enumerate(out):
             labels = targets[targets[:, 0] == si, 1:]
-            nl = len(labels)
-            tcls = labels[:, 0].tolist() if nl else []  # target class
             path, shape = Path(paths[si]), shapes[si][0]
+            nl = len(labels)
+            if nl:
+                tcls = labels[:, 0].tolist()
+                tbox = xywh2xyxy(labels[:, 1:5])  # target boxes
+                scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
+                labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
+            else:
+                tcls = []  # target class
+                tbox = []
+            
             seen += 1
-
+            
             if len(pred) == 0:
                 if nl:
                     stats.append((torch.zeros(0, niou, dtype=torch.bool), torch.Tensor(), torch.Tensor(), tcls))
@@ -230,9 +238,6 @@ def run(data,
 
                 # Evaluate
                 if nl:
-                    tbox = xywh2xyxy(labels[:, 1:5])  # target boxes
-                    scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
-                    labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                     correct = process_batch(predn, labelsn, iouv)
                     if plots:
                         confusion_matrix.process_batch(predn, labelsn)
@@ -250,8 +255,7 @@ def run(data,
                         txt_dets[names[int(cls)]].append((path.stem, conf, bbox))
             if voc_eval:
                 anno = []
-                tbox_ = tbox.cpu().numpy()
-                #tcls = labels[:, 0].cpu().numpy()
+                tbox_ = tbox.cpu().numpy() if nl else []
                 for il in range(nl):
                     anno.append({'name': names[int(tcls[il])],
                                  'bbox': tbox_[il]})
