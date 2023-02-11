@@ -220,6 +220,7 @@ def run(data,
             if len(pred) == 0:
                 if nl:
                     stats.append((torch.zeros(0, niou, dtype=torch.bool), torch.Tensor(), torch.Tensor(), tcls))
+                predn = None
             else:
                 # Predictions
                 if single_cls:
